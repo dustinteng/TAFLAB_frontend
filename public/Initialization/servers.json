@@ -10,5 +10,9 @@
   {
     "label": "Remote Server 2",
     "value": "http://remote-server2.com:3336"
+  },
+   {
+    "label": "Fresno State Development Test",
+    "value": "http://127.0.0.1:3336"
   }
 ]

@@ -7,6 +7,7 @@ import AutonomousControl from "./components/Map/AutonomousControl";
 import ManualControl from "./components/Map/ManualControl";
 import DataTransfer from "./components/DataTransfer/DataTransfer";
 import HeatmapWindow from "./components/Map/HeatmapWindow";
+import Dashboard from "./components/Dashboard/Dashboard";
 import "./styles/styles.css";
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
         return <DataTransfer />;
       case "heatmap":
         return <HeatmapWindow />;
+      case "dashboard":
+        return <Dashboard />;
       default:
         return <ManualControl />;
     }
@@ -60,6 +63,12 @@ function App() {
               onClick={() => setActiveTab("heatmap")}
             >
               Heatmap
+            </button>
+            <button
+              className={activeTab === "dashboard" ? "active" : ""}
+              onClick={() => setActiveTab("dashboard")}
+            >
+              Dashboard
             </button>
           </nav>
           <section className="tab-content">{renderTab()}</section>
