@@ -1,5 +1,3 @@
-// components/Map/AutonomousControl.js
-
 import React, { useState, useEffect, useContext } from "react";
 import {
   MapContainer,
@@ -50,7 +48,6 @@ function AutonomousControl() {
   const { boats } = useContext(BoatContext);
 
   const [targetBoatId, setTargetBoatId] = useState("");
-  const [boat, setBoat] = useState("Boat1");
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [copiedPosition, setCopiedPosition] = useState(null);
   const [mapCenter, setMapCenter] = useState([37.866942, -122.315452]);
@@ -67,16 +64,10 @@ function AutonomousControl() {
 
   useEffect(() => {
     const targetBoat = boats.find((b) => b.boat_id === targetBoatId);
-    setBoat(targetBoat);
-
-    if (
-      targetBoat &&
-      typeof targetBoat.lat === "number" &&
-      typeof targetBoat.lng === "number"
-    ) {
+    if (targetBoat && targetBoat.data) {
       setMapCenter([
-        parseFloat(targetBoat.lat.toFixed(6)),
-        parseFloat(targetBoat.lng.toFixed(6)),
+        parseFloat(targetBoat.data.latitude.toFixed(6)),
+        parseFloat(targetBoat.data.longitude.toFixed(6)),
       ]);
     }
   }, [boats, targetBoatId]);
@@ -92,17 +83,21 @@ function AutonomousControl() {
     const newBoatStatuses = { ...boatStatuses };
 
     boats.forEach((b) => {
-      if (b && typeof b.lat === "number" && typeof b.lng === "number") {
+      if (
+        b.data &&
+        typeof b.data.latitude === "number" &&
+        typeof b.data.longitude === "number"
+      ) {
         if (!newBoatTrails[b.boat_id]) {
           newBoatTrails[b.boat_id] = [];
         }
-        newBoatTrails[b.boat_id].push([b.lat, b.lng]);
+        newBoatTrails[b.boat_id].push([b.data.latitude, b.data.longitude]);
         if (newBoatTrails[b.boat_id].length > 50) {
           newBoatTrails[b.boat_id].shift();
         }
 
-        if (b.status) {
-          newBoatStatuses[b.boat_id] = b.status;
+        if (b.data.status) {
+          newBoatStatuses[b.boat_id] = b.data.status;
         }
       }
     });
@@ -114,12 +109,13 @@ function AutonomousControl() {
   useEffect(() => {
     boats.forEach((b) => {
       if (
-        b.notification &&
-        b.notification.id &&
-        b.notification.type === "reached"
+        b.data &&
+        b.data.notification &&
+        b.data.notification.id &&
+        b.data.notification.type === "reached"
       ) {
         setNotification({
-          id: b.notification.id,
+          id: b.data.notification.id,
           boat_id: b.boat_id,
           message: `${b.boat_id} has reached its destination.`,
         });
@@ -144,13 +140,13 @@ function AutonomousControl() {
   const handleMapClick = (e) => {
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lng = parseFloat(e.latlng.lng.toFixed(6));
-    setSelectedPosition({ lat, lng });
+    setSelectedPosition({ latitude: lat, longitude: lng });
   };
 
   const copySelectedPosition = () => {
-    const textToCopy = `${selectedPosition.lat.toFixed(
+    const textToCopy = `${selectedPosition.latitude.toFixed(
       6
-    )},${selectedPosition.lng.toFixed(6)}`;
+    )},${selectedPosition.longitude.toFixed(6)}`;
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard
         .writeText(textToCopy)
@@ -182,8 +178,8 @@ function AutonomousControl() {
       const data = {
         id: targetBoatId,
         md: "auto",
-        tlat: selectedPosition.lat,
-        tlng: selectedPosition.lng,
+        tlat: selectedPosition.latitude,
+        tlng: selectedPosition.longitude,
       };
       socket.emit("gui_data", data);
       console.log("Sent route to current boat:", data);
@@ -200,8 +196,8 @@ function AutonomousControl() {
         ...prev,
         [boatId]: {
           ...prev[boatId],
-          lat: parseFloat(copiedPosition.lat.toFixed(6)),
-          lng: parseFloat(copiedPosition.lng.toFixed(6)),
+          latitude: parseFloat(copiedPosition.latitude.toFixed(6)),
+          longitude: parseFloat(copiedPosition.longitude.toFixed(6)),
         },
       }));
     }
@@ -233,15 +229,11 @@ function AutonomousControl() {
       <div className="boat-selection">
         <label>Select Boat: </label>
         <select value={targetBoatId} onChange={handleBoatChange}>
-          {boats.length > 0 ? (
-            boats.map((b) => (
-              <option key={b.boat_id} value={b.boat_id}>
-                {b.boat_id}
-              </option>
-            ))
-          ) : (
-            <option>No boats available</option>
-          )}
+          {boats.map((b) => (
+            <option key={b.boat_id} value={b.boat_id}>
+              {b.boat_id}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -259,7 +251,11 @@ function AutonomousControl() {
         />
         <ClickableMap />
         {boats.map((b) => {
-          if (b && typeof b.lat === "number" && typeof b.lng === "number") {
+          if (
+            b.data &&
+            typeof b.data.latitude === "number" &&
+            typeof b.data.longitude === "number"
+          ) {
             const isSelected = b.boat_id === targetBoatId;
             const icon = isSelected ? selectedBoatIcon : boatIcon;
             const boatColor = getBoatColor(b.boat_id);
@@ -268,8 +264,8 @@ function AutonomousControl() {
               <Marker
                 key={b.boat_id}
                 position={[
-                  parseFloat(b.lat.toFixed(6)),
-                  parseFloat(b.lng.toFixed(6)),
+                  parseFloat(b.data.latitude.toFixed(6)),
+                  parseFloat(b.data.longitude.toFixed(6)),
                 ]}
                 icon={icon}
                 eventHandlers={{
@@ -280,16 +276,16 @@ function AutonomousControl() {
                   <div>
                     <b>{b.boat_id}</b>
                     <br />
-                    Latitude: {b.lat.toFixed(6)}
+                    Latitude: {b.data.latitude.toFixed(6)}
                     <br />
-                    Longitude: {b.lng.toFixed(6)}
+                    Longitude: {b.data.longitude.toFixed(6)}
                     <hr />
                     <div>
                       <label>Target Latitude:</label>
                       <input
                         type="number"
                         step="0.000001"
-                        value={boatTargets[b.boat_id]?.lat || ""}
+                        value={boatTargets[b.boat_id]?.latitude || ""}
                         onChange={(e) => {
                           const value = parseFloat(
                             parseFloat(e.target.value).toFixed(6)
@@ -298,7 +294,7 @@ function AutonomousControl() {
                             ...prev,
                             [b.boat_id]: {
                               ...prev[b.boat_id],
-                              lat: value,
+                              latitude: value,
                             },
                           }));
                         }}
@@ -309,7 +305,7 @@ function AutonomousControl() {
                       <input
                         type="number"
                         step="0.000001"
-                        value={boatTargets[b.boat_id]?.lng || ""}
+                        value={boatTargets[b.boat_id]?.longitude || ""}
                         onChange={(e) => {
                           const value = parseFloat(
                             parseFloat(e.target.value).toFixed(6)
@@ -318,7 +314,7 @@ function AutonomousControl() {
                             ...prev,
                             [b.boat_id]: {
                               ...prev[b.boat_id],
-                              lng: value,
+                              longitude: value,
                             },
                           }));
                         }}
@@ -355,15 +351,18 @@ function AutonomousControl() {
         ))}
 
         {selectedPosition && (
-          <Marker position={selectedPosition} icon={selectedIcon}>
+          <Marker
+            position={[selectedPosition.latitude, selectedPosition.longitude]}
+            icon={selectedIcon}
+          >
             <Popup>
               Navigation:
               <br />
               Boat: {targetBoatId || "No Available Boats"}
               <br />
-              Latitude: {selectedPosition.lat.toFixed(6)}
+              Latitude: {selectedPosition.latitude.toFixed(6)}
               <br />
-              Longitude: {selectedPosition.lng.toFixed(6)}
+              Longitude: {selectedPosition.longitude.toFixed(6)}
               <br />
               <button onClick={copySelectedPosition}>Copy</button>
               <button
