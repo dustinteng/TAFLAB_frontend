@@ -203,7 +203,7 @@ const HeatmapWindow = () => {
         zoom={14}
         style={{ height: "600px", width: "100%" }}
         zoomControl={false}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         doubleClickZoom={false}
         touchZoom={false}
         dragging={true}

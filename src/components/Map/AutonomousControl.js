@@ -241,7 +241,7 @@ function AutonomousControl() {
         center={mapCenter}
         zoom={14}
         style={{ width: "100%", height: "500px" }}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         doubleClickZoom={false}
         touchZoom={false}
       >
