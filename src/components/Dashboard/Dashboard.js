@@ -87,7 +87,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h1>Dashboard</h1>
+      <h1>Data Table</h1>
 
       <div className="search-bar">
         <select

@@ -68,7 +68,7 @@ function App() {
               className={activeTab === "dashboard" ? "active" : ""}
               onClick={() => setActiveTab("dashboard")}
             >
-              Dashboard
+              Data Table
             </button>
           </nav>
           <section className="tab-content">{renderTab()}</section>
