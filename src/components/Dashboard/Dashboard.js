@@ -1,9 +1,11 @@
 import React, { useContext, useState, useEffect } from "react";
 import { BoatContext } from "../../contexts/BoatContext";
+import { useRecording } from "../../contexts/RecordingContext";
 import "./Dashboard.css";
 
 const Dashboard = () => {
   const { boats } = useContext(BoatContext); // Access boat data from context
+  const { recordingBoats } = useRecording(); // Access boats in start recording state
   const [data, setData] = useState([]); // State to store boats with timestamps
   const [originalData, setOriginalData] = useState([]); // To store unfiltered data
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
@@ -26,29 +28,31 @@ const Dashboard = () => {
     localStorage.setItem("boatData", JSON.stringify(data));
   }, [data]);
 
-  // Append new boat data with timestamps
+  // Append new boat data with timestamps if they are in the recording state
   useEffect(() => {
     console.log("Incoming boats data:", boats); // Debugging: Log incoming boats data
 
-    const newBoats = boats.map((boat) => {
-      const boatData = boat.data || {}; // Access nested data object
-      return {
-        boat_id: boat.boat_id || "Unknown ID",
-        chaos: boatData.chaos ?? "Unknown",
-        status: boatData.status ?? "Unknown",
-        temperature: boatData.temperature ?? "Unknown",
-        wind_dir_u: boatData.wind_dir_u ?? "Unknown",
-        wind_dir_v: boatData.wind_dir_v ?? "Unknown",
-        timestamp: new Date().toISOString(),
-      };
-    });
+    const newBoats = boats
+      .filter((boat) => recordingBoats[boat.boat_id] === true) // Only record boats in recording state
+      .map((boat) => {
+        const boatData = boat.data || {}; // Access nested data object
+        return {
+          boat_id: boat.boat_id || "Unknown ID",
+          chaos: boatData.chaos ?? "Unknown",
+          status: boatData.status ?? "Unknown",
+          temperature: boatData.temperature ?? "Unknown",
+          wind_dir_u: boatData.wind_dir_u ?? "Unknown",
+          wind_dir_v: boatData.wind_dir_v ?? "Unknown",
+          timestamp: new Date().toISOString(),
+        };
+      });
 
     setData((prevData) => {
       const updatedData = [...prevData, ...newBoats];
       setOriginalData(updatedData);
       return updatedData;
     });
-  }, [boats]);
+  }, [boats, recordingBoats]);
 
   const sortData = (key) => {
     if (!key) return;
@@ -87,7 +91,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
-      <h1>Data Table</h1>
+      <h1>Dashboard</h1>
 
       <div className="search-bar">
         <select
