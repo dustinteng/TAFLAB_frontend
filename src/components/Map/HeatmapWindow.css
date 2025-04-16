@@ -3,7 +3,11 @@
 .heatmap-container {
   position: relative;
   width: 100%;
-  height: 100%;
+  height: calc(
+    100vh - 100px
+  ); /* or however much space your header+tabs takes */
+  display: flex;
+  flex-direction: column;
 }
 
 .data-type-selector {
@@ -20,6 +24,18 @@
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
   cursor: grab;
   user-select: none;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  height: calc(100% - 150px); /* subtract controls height if needed */
+}
+
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
 }
 
 .legend-scale {

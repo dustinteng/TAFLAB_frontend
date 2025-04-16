@@ -1,5 +1,4 @@
 // App.js
-
 import React, { useState } from "react";
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
@@ -19,14 +18,13 @@ function App() {
     switch (activeTab) {
       case "manual":
         return <ManualControl />;
-      case "autonomous":
-        return <AutonomousControl />;
       case "data":
         return <DataTransfer />;
       case "heatmap":
         return <HeatmapWindow />;
+      case "autonomous":
       default:
-        return <ManualControl />;
+        return <AutonomousControl />;
     }
   };
 
@@ -38,16 +36,10 @@ function App() {
         <main className="control-panel">
           <nav className="tabs">
             <button
-              className={activeTab === "manual" ? "active" : ""}
-              onClick={() => setActiveTab("manual")}
-            >
-              Manual Control
-            </button>
-            <button
               className={activeTab === "autonomous" ? "active" : ""}
               onClick={() => setActiveTab("autonomous")}
             >
-              Autonomous Control
+              Main Dashboard
             </button>
             <button
               className={activeTab === "data" ? "active" : ""}
