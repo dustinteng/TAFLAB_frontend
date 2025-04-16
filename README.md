@@ -1,156 +1,123 @@
-# TAFLAB Swarm Boat System
+# TAFLAB: Telemetry-Driven Autonomous Fleet Lab
 
-An integrated multi-robot platform for oceanic data collection using autonomous sailboats. The system is composed of three main components:
-
-- A **ROS2-based control system** running on Raspberry Pi (boat side)
-- A **Flask-based backend** for communication, data collection, and storage (shore side)
-- A **React frontend dashboard** for real-time visualization, control, and analysis
+TAFLAB is a modular, full-stack robotics system for collecting, analyzing, and visualizing data from autonomous marine robots. It supports swarm data telemetry, command control, real-time heatmap rendering, and an extensible backend architecture.
 
 ---
 
-## 🛍️ Repositories Overview
+## 🚀 System Overview
 
-### 🔹 [TAFLAB_boatpi_roshumble](https://github.com/dustinteng/TAFLAB_boatpi_roshumble)
+TAFLAB is composed of three major components:
 
-> ROS2 Humble stack deployed on each Raspberry Pi-equipped sailboat
+1. **Frontend GUI** - [TAFLAB_frontend](https://github.com/dustinteng/TAFLAB_frontend)
+2. **Backend API Server** - [TAFLAB_backend](https://github.com/dustinteng/TAFLAB_backend/tree/modular_v3)
+3. **Boat Onboard Stack** - [TAFLAB_boatpi_roshumble](https://github.com/dustinteng/TAFLAB_boatpi_roshumble/tree/version4)
 
-- Nodes control rudder, sail, and motor
-- Publishes GPS, IMU, and sensor data
-- Communicates with the backend via XBee
-- Launch file structure under `captain/launch/`
-
-### 🔹 [TAFLAB_backend](https://github.com/dustinteng/TAFLAB_backend)
-
-> Flask backend to receive, store, and serve telemetry data
-
-- Accepts data from boats and appends to a `large_table`
-- Serves REST and GraphQL endpoints
-- Includes endpoints:
-  - `/upload`, `/download/<source>`, `/sources`, `/delete/<source>`
-- Modular GraphQL API for advanced queries
-- Supports ELT model (extract + load, then transform in-database)
-
-### 🔹 [TAFLAB_frontend](https://github.com/dustinteng/TAFLAB_frontend)
-
-> React.js frontend for live control, visual feedback, and data analysis
-
-- Live boat map with route setting and telemetry overlays
-- Manual control with joystick and slider
-- Heatmap visualization of environmental data (temperature/wind)
-- CSV file management, data previews, and time-slider control
-- Responsive UI with drag-and-drop legends and dropdowns
+Each part communicates via HTTP and XBee mesh network to form a reliable and scalable robotic data infrastructure.
 
 ---
 
-## 🚀 Quick Start Guide
+## 1. Frontend - TAFLAB_frontend
 
-### 1. Boat (Raspberry Pi) Setup
+- **Framework**: React.js with React Leaflet for geospatial visualization
+- **Features**:
+  - Map-based boat tracking
+  - Real-time joystick + slider control for rudder/propeller
+  - Heatmap rendering from historical CSV logs
+  - File source selector, telemetry viewer, and draggable legend
 
-```bash
-# On each Raspberry Pi
-cd TAFLAB_boatpi_roshumble
-# Setup ROS2 workspace and dependencies
-rosdep install --from-paths src --ignore-src -r -y
-colcon build
-source install/setup.bash
-# Launch boat control stack
-ros2 launch captain captain.launch.py
-```
-
-### 2. Backend (Shore Station)
+### Run the Frontend
 
 ```bash
-cd TAFLAB_backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 app.py
-```
-
-### 3. Frontend (Dashboard)
-
-```bash
+git clone https://github.com/dustinteng/TAFLAB_frontend
 cd TAFLAB_frontend
 npm install
 npm start
 ```
 
----
-
-## 📊 Features Summary
-
-### Autonomy
-
-- Waypoint navigation (click on map)
-- Live telemetry trail and target position popup
-
-### Manual Control
-
-- Joystick: rudder
-- Slider: propeller/motor
-- Dropdown to switch boats in GUI
-
-### Data Collection & Management
-
-- CSV files saved and categorized by source name
-- GraphQL query builder (from frontend)
-- Optional upload/download/delete actions
-
-### Visualization
-
-- Leaflet-based map (OpenStreetMap tiles)
-- Heatmap display with color-scaled data (temperature / wind)
-- Draggable legend box and marker toggles
-- Snapshot time-slider to scroll back in time
+Default: `http://localhost:3000`
 
 ---
 
-## 🧰 Architecture Diagram
+## 2. Backend - TAFLAB_backend
 
-```mermaid
-graph LR
-  subgraph BOAT [Onboard: Raspberry Pi + ROS2 Humble]
-    A1[Rudder/Sail/Motor Control Node]
-    A2[Sensor Publishers: GPS, IMU, Wind]
-    A3[XBee Communication Node]
-  end
+- **Branch**: [`modular_v3`](https://github.com/dustinteng/TAFLAB_backend/tree/modular_v3)
+- **Purpose**: Shore station database API for uploading, downloading, and querying telemetry logs
 
-  subgraph SHORE [Shore Station]
-    B1[TAFLAB_backend (Flask)]
-    B2[TAFLAB_frontend (React)]
-  end
+### Key Features
 
-  A3 -- XBee --> B1
-  B1 -- REST/GraphQL --> B2
+- CSV ingest and parse
+- ETL and ELT hybrid design
+- GraphQL for flexible data queries
+- SQLite database with dynamic column detection
+
+### API Endpoints
+
+| Method | Route                | Description                     |
+| ------ | -------------------- | ------------------------------- |
+| POST   | `/upload`            | Upload a CSV telemetry file     |
+| GET    | `/sources`           | List all known CSV file sources |
+| GET    | `/download/<source>` | Download a file's data          |
+| DELETE | `/delete/<source>`   | Remove all rows from a source   |
+| POST   | `/query`             | Execute GraphQL database query  |
+
+### Run the Backend
+
+```bash
+git clone -b modular_v3 https://github.com/dustinteng/TAFLAB_backend.git
+cd TAFLAB_backend
+python3 app.py
+
+don't be a kiddo, debug it yourself, its probably just library installations...
 ```
 
 ---
 
-## 🧱 Tech Stack
+## 3. Boat Stack - TAFLAB_boatpi_roshumble
 
-| Layer        | Technology                        |
-| ------------ | --------------------------------- |
-| Onboard Boat | ROS2 Humble, Python, XBee         |
-| Backend      | Flask, SQLite, REST & GraphQL     |
-| Frontend     | React.js, Leaflet, WebSocket, CSS |
+- **Branch**: [`version4`](https://github.com/dustinteng/TAFLAB_boatpi_roshumble/tree/version4)
+- **Platform**: Raspberry Pi with ROS2 Humble
+- **Functionality**:
+  - Rudder and sail actuation
+  - Sensor node publishing (GPS, IMU, etc.)
+  - Listens for `/boatcontrol` topic and sends XBee data
+  - Periodic heartbeat and telemetry broadcast
 
----
+### Launch Example
 
-## ⚡ Future Work
-
-- Real-time mesh networking across boat nodes
-- Predictive wave modeling from aggregated data
-- Integration with external APIs for weather overlays
-- Dashboard export to PDF or data dashboarding libraries
-
----
-
-## ✅ License
-
-MIT License
+````bash
+source /opt/ros/humble/setup.bash
+colcon build
+ros2 launch boat_launch boat_launch.py```
 
 ---
 
-## 🙏 Acknowledgements
+## 📊 Data Flow
 
-This system is developed as part of the TAFLAB project at UC Berkeley. Special thanks to collaborators, testers, and the ocean robotics community.
+1. **Boats** periodically log and/or transmit sensor data
+2. **Backend** accepts batch CSV upload or live POST (WIP)
+3. **Frontend** requests available files, visualizes them as heatmaps
+4. **Users** can control boats or review parsed data
+
+---
+
+## 🤝 Contributing
+
+This system is in active development. Feel free to fork, contribute via PRs, or raise issues on GitHub.
+
+---
+
+## ⚙️ Roadmap
+
+- [x] Modular Flask backend with GraphQL
+- [x] ROS2 Humble boat integration
+- [x] CSV-based batch heatmap rendering
+- [ ] Live MQTT stream support
+- [ ] Mission planning via map GUI
+- [ ] PostgreSQL upgrade
+
+---
+
+## ✨ License
+
+MIT License. © 2025 Jan Dustin Tengdyantono
+````
