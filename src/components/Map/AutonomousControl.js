@@ -15,26 +15,6 @@ import { useSocket } from "../../contexts/SocketContext";
 import { BoatContext } from "../../contexts/BoatContext";
 import "./AutonomousControl.css";
 
-// Define icons for boats and target marker
-const boatIcon = new L.Icon({
-  iconUrl: "boat.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
-const selectedBoatIcon = new L.Icon({
-  iconUrl: "boat.png",
-  iconSize: [48, 48],
-  iconAnchor: [24, 48],
-  popupAnchor: [0, -48],
-});
-const selectedIcon = new L.Icon({
-  iconUrl: "target-location.png",
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
-  popupAnchor: [0, -32],
-});
-
 const boatColors = {};
 const getBoatColor = (boatId) => {
   if (!boatColors[boatId]) {
@@ -53,15 +33,12 @@ function AutonomousControl() {
   const [mapCenter, setMapCenter] = useState([37.866942, -122.315452]);
   const [boatTrails, setBoatTrails] = useState({});
   const [notification, setNotification] = useState(null);
-
   const [rudder, setRudder] = useState(0);
   const [propeller, setPropeller] = useState(0);
   const rudderRef = useRef(0);
   const propellerRef = useRef(0);
   const controlIntervalId = useRef(null);
   const commandModeValue = "autonomous";
-  const intervalTime = 500;
-  const [boatDropdownOpen, setBoatDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (setCommandMode) setCommandMode(commandModeValue);
@@ -144,30 +121,19 @@ function AutonomousControl() {
         tlng: selectedPosition.longitude,
       };
       socket.emit("gui_data", data);
-      console.log("Sent route:", data);
     }
-  };
-
-  const copySelectedPosition = () => {
-    const text = `${selectedPosition.latitude.toFixed(
-      6
-    )},${selectedPosition.longitude.toFixed(6)}`;
-    navigator.clipboard
-      ?.writeText(text)
-      .then(() => console.log("Copied", text));
   };
 
   const startControlSending = () => {
     if (!controlIntervalId.current && isConnected && socket) {
       controlIntervalId.current = setInterval(() => {
-        const data = {
+        socket.emit("gui_data", {
           id: targetBoatId,
           md: commandModeValue,
           r: rudderRef.current,
           p: propellerRef.current,
-        };
-        socket.emit("gui_data", data);
-      }, intervalTime);
+        });
+      }, 500);
     }
   };
 
@@ -178,10 +144,10 @@ function AutonomousControl() {
     }
   };
 
-  const handleRudderMove = (event) => {
-    const newRudder = Math.round(event.x * 90);
-    setRudder(newRudder);
-    rudderRef.current = newRudder;
+  const handleRudderMove = (e) => {
+    const r = Math.round(e.x * 90);
+    setRudder(r);
+    rudderRef.current = r;
     startControlSending();
   };
 
@@ -189,14 +155,12 @@ function AutonomousControl() {
     setRudder(0);
     rudderRef.current = 0;
     stopControlSending();
-    if (socket && isConnected) {
-      socket.emit("gui_data", {
-        id: targetBoatId,
-        md: commandModeValue,
-        r: 0,
-        p: propellerRef.current,
-      });
-    }
+    socket.emit("gui_data", {
+      id: targetBoatId,
+      md: commandModeValue,
+      r: 0,
+      p: propellerRef.current,
+    });
   };
 
   const handlePropellerChange = (e) => {
@@ -208,10 +172,6 @@ function AutonomousControl() {
 
   const handlePropellerMouseUp = () => {
     stopControlSending();
-  };
-
-  const toggleBoatDropdown = () => {
-    setBoatDropdownOpen(!boatDropdownOpen);
   };
 
   return (
@@ -241,16 +201,25 @@ function AutonomousControl() {
               typeof b.data.latitude === "number" &&
               typeof b.data.longitude === "number"
             ) {
-              const isSelected = b.boat_id === targetBoatId;
-              const icon = isSelected ? selectedBoatIcon : boatIcon;
               return (
                 <Marker
                   key={b.boat_id}
-                  position={[
-                    parseFloat(b.data.latitude.toFixed(6)),
-                    parseFloat(b.data.longitude.toFixed(6)),
-                  ]}
-                  icon={icon}
+                  position={[b.data.latitude, b.data.longitude]}
+                  icon={
+                    b.boat_id === targetBoatId
+                      ? new L.DivIcon({
+                          className: "custom-icon",
+                          html: `<div style='width:16px;height:16px;border-radius:50%;background:${getBoatColor(
+                            b.boat_id
+                          )};border:2px solid black'></div>`,
+                        })
+                      : new L.DivIcon({
+                          className: "custom-icon",
+                          html: `<div style='width:12px;height:12px;border-radius:50%;background:${getBoatColor(
+                            b.boat_id
+                          )}'></div>`,
+                        })
+                  }
                   eventHandlers={{ click: () => setTargetBoatId(b.boat_id) }}
                 >
                   <Popup>
@@ -260,6 +229,10 @@ function AutonomousControl() {
                       Latitude: {b.data.latitude.toFixed(6)}
                       <br />
                       Longitude: {b.data.longitude.toFixed(6)}
+                      <br />
+                      <button onClick={sendRouteToCurrentBoat}>
+                        Send Route
+                      </button>
                     </div>
                   </Popup>
                 </Marker>
@@ -267,34 +240,23 @@ function AutonomousControl() {
             }
             return null;
           })}
-          {Object.keys(boatTrails).map((boatId) => (
+          {Object.keys(boatTrails).map((id) => (
             <Polyline
-              key={boatId}
-              positions={boatTrails[boatId]}
-              pathOptions={{ color: getBoatColor(boatId) }}
+              key={id}
+              positions={boatTrails[id]}
+              pathOptions={{ color: getBoatColor(id) }}
             />
           ))}
           {selectedPosition && (
             <Marker
               position={[selectedPosition.latitude, selectedPosition.longitude]}
-              icon={selectedIcon}
             >
               <Popup>
-                Navigation:
+                Lat: {selectedPosition.latitude.toFixed(6)}
                 <br />
-                Boat: {targetBoatId || "No Available Boats"}
+                Lng: {selectedPosition.longitude.toFixed(6)}
                 <br />
-                Latitude: {selectedPosition.latitude.toFixed(6)}
-                <br />
-                Longitude: {selectedPosition.longitude.toFixed(6)}
-                <br />
-                <button onClick={copySelectedPosition}>Copy</button>
-                <button
-                  onClick={sendRouteToCurrentBoat}
-                  disabled={!isConnected || !targetBoatId}
-                >
-                  Send Route
-                </button>
+                <button onClick={sendRouteToCurrentBoat}>Send Route</button>
               </Popup>
             </Marker>
           )}
@@ -302,27 +264,27 @@ function AutonomousControl() {
       </div>
       <div className="right-panel">
         <h2>Boats</h2>
-        <div className="boat-dropdown">
-          <div className="dropdown-header" onClick={toggleBoatDropdown}>
-            {boatDropdownOpen
-              ? "Select Boat:"
-              : `Connected Boats: ${boats.length}`}
-          </div>
-          {boatDropdownOpen && (
-            <ul className="dropdown-list">
-              {boats.map((b) => (
-                <li
-                  key={b.boat_id}
-                  onClick={() => {
-                    setTargetBoatId(b.boat_id);
-                    setBoatDropdownOpen(false);
-                  }}
-                >
-                  {b.boat_id}
-                </li>
-              ))}
-            </ul>
-          )}
+        <div
+          className="boat-dropdown"
+          style={{ maxHeight: "200px", overflowY: "auto" }}
+        >
+          {boats.map((b) => (
+            <div
+              key={b.boat_id}
+              style={{
+                backgroundColor:
+                  b.boat_id === targetBoatId
+                    ? getBoatColor(b.boat_id)
+                    : "#f4f4f4",
+                color: b.boat_id === targetBoatId ? "white" : "black",
+                padding: "6px 10px",
+                cursor: "pointer",
+              }}
+              onClick={() => setTargetBoatId(b.boat_id)}
+            >
+              {b.boat_id}
+            </div>
+          ))}
         </div>
         <h2>Control</h2>
         <div className="control-group">
@@ -352,17 +314,6 @@ function AutonomousControl() {
           />
           <p>Propeller: {propeller}%</p>
         </div>
-        {selectedPosition && (
-          <div className="map-coordinates">
-            <p>
-              Lat: {selectedPosition.latitude.toFixed(6)}
-              <br />
-              Lng: {selectedPosition.longitude.toFixed(6)}
-            </p>
-            <button onClick={copySelectedPosition}>Copy</button>
-            <button onClick={sendRouteToCurrentBoat}>Send Route</button>
-          </div>
-        )}
       </div>
     </div>
   );
