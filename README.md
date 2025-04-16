@@ -1,70 +1,156 @@
-# Getting Started with Create React App
+# TAFLAB Swarm Boat System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An integrated multi-robot platform for oceanic data collection using autonomous sailboats. The system is composed of three main components:
 
-## Available Scripts
+- A **ROS2-based control system** running on Raspberry Pi (boat side)
+- A **Flask-based backend** for communication, data collection, and storage (shore side)
+- A **React frontend dashboard** for real-time visualization, control, and analysis
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🛍️ Repositories Overview
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🔹 [TAFLAB_boatpi_roshumble](https://github.com/dustinteng/TAFLAB_boatpi_roshumble)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+> ROS2 Humble stack deployed on each Raspberry Pi-equipped sailboat
 
-### `npm test`
+- Nodes control rudder, sail, and motor
+- Publishes GPS, IMU, and sensor data
+- Communicates with the backend via XBee
+- Launch file structure under `captain/launch/`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🔹 [TAFLAB_backend](https://github.com/dustinteng/TAFLAB_backend)
 
-### `npm run build`
+> Flask backend to receive, store, and serve telemetry data
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Accepts data from boats and appends to a `large_table`
+- Serves REST and GraphQL endpoints
+- Includes endpoints:
+  - `/upload`, `/download/<source>`, `/sources`, `/delete/<source>`
+- Modular GraphQL API for advanced queries
+- Supports ELT model (extract + load, then transform in-database)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 🔹 [TAFLAB_frontend](https://github.com/dustinteng/TAFLAB_frontend)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+> React.js frontend for live control, visual feedback, and data analysis
 
-### `npm run eject`
+- Live boat map with route setting and telemetry overlays
+- Manual control with joystick and slider
+- Heatmap visualization of environmental data (temperature/wind)
+- CSV file management, data previews, and time-slider control
+- Responsive UI with drag-and-drop legends and dropdowns
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+---
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🚀 Quick Start Guide
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Boat (Raspberry Pi) Setup
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+# On each Raspberry Pi
+cd TAFLAB_boatpi_roshumble
+# Setup ROS2 workspace and dependencies
+rosdep install --from-paths src --ignore-src -r -y
+colcon build
+source install/setup.bash
+# Launch boat control stack
+ros2 launch captain captain.launch.py
+```
 
-## Learn More
+### 2. Backend (Shore Station)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```bash
+cd TAFLAB_backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 app.py
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 3. Frontend (Dashboard)
 
-### Code Splitting
+```bash
+cd TAFLAB_frontend
+npm install
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## 📊 Features Summary
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Autonomy
 
-### Making a Progressive Web App
+- Waypoint navigation (click on map)
+- Live telemetry trail and target position popup
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Manual Control
 
-### Advanced Configuration
+- Joystick: rudder
+- Slider: propeller/motor
+- Dropdown to switch boats in GUI
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Data Collection & Management
 
-### Deployment
+- CSV files saved and categorized by source name
+- GraphQL query builder (from frontend)
+- Optional upload/download/delete actions
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Visualization
 
-### `npm run build` fails to minify
+- Leaflet-based map (OpenStreetMap tiles)
+- Heatmap display with color-scaled data (temperature / wind)
+- Draggable legend box and marker toggles
+- Snapshot time-slider to scroll back in time
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## 🧰 Architecture Diagram
+
+```mermaid
+graph LR
+  subgraph BOAT [Onboard: Raspberry Pi + ROS2 Humble]
+    A1[Rudder/Sail/Motor Control Node]
+    A2[Sensor Publishers: GPS, IMU, Wind]
+    A3[XBee Communication Node]
+  end
+
+  subgraph SHORE [Shore Station]
+    B1[TAFLAB_backend (Flask)]
+    B2[TAFLAB_frontend (React)]
+  end
+
+  A3 -- XBee --> B1
+  B1 -- REST/GraphQL --> B2
+```
+
+---
+
+## 🧱 Tech Stack
+
+| Layer        | Technology                        |
+| ------------ | --------------------------------- |
+| Onboard Boat | ROS2 Humble, Python, XBee         |
+| Backend      | Flask, SQLite, REST & GraphQL     |
+| Frontend     | React.js, Leaflet, WebSocket, CSS |
+
+---
+
+## ⚡ Future Work
+
+- Real-time mesh networking across boat nodes
+- Predictive wave modeling from aggregated data
+- Integration with external APIs for weather overlays
+- Dashboard export to PDF or data dashboarding libraries
+
+---
+
+## ✅ License
+
+MIT License
+
+---
+
+## 🙏 Acknowledgements
+
+This system is developed as part of the TAFLAB project at UC Berkeley. Special thanks to collaborators, testers, and the ocean robotics community.
