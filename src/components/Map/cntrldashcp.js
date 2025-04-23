@@ -1,4 +1,3 @@
-// AutonomousControl.js
 import React, { useState, useEffect, useContext, useRef } from "react";
 import {
   MapContainer,
@@ -13,7 +12,7 @@ import "leaflet/dist/leaflet.css";
 import { Joystick } from "react-joystick-component";
 import { useSocket } from "../../contexts/SocketContext";
 import { BoatContext } from "../../contexts/BoatContext";
-import "./AutonomousControl.css";
+import "./ControlDashboard.css";
 
 const boatColors = {};
 const getBoatColor = (boatId) => {
@@ -24,7 +23,7 @@ const getBoatColor = (boatId) => {
   return boatColors[boatId];
 };
 
-function AutonomousControl() {
+function ControlDashboard() {
   const { socket, isConnected, setCommandMode } = useSocket();
   const { boats } = useContext(BoatContext);
 
@@ -88,7 +87,7 @@ function AutonomousControl() {
         setNotification({
           id: b.data.notification.id,
           boat_id: b.boat_id,
-          message: `${b.boat_id} has reached its destination.`,
+          message: "${b.boat_id} has reached its destination.",
         });
       }
     });
@@ -209,15 +208,23 @@ function AutonomousControl() {
                     b.boat_id === targetBoatId
                       ? new L.DivIcon({
                           className: "custom-icon",
-                          html: `<div style='width:16px;height:16px;border-radius:50%;background:${getBoatColor(
+                          html: (
+                            <div
+                              style="width:16px;height:16px;border-radius:50%;background:${getBoatColor(
                             b.boat_id
-                          )};border:2px solid black'></div>`,
+                          )};border:2px solid black"
+                            ></div>
+                          ),
                         })
                       : new L.DivIcon({
                           className: "custom-icon",
-                          html: `<div style='width:12px;height:12px;border-radius:50%;background:${getBoatColor(
+                          html: (
+                            <div
+                              style="width:12px;height:12px;border-radius:50%;background:${getBoatColor(
                             b.boat_id
-                          )}'></div>`,
+                          )}"
+                            ></div>
+                          ),
                         })
                   }
                   eventHandlers={{ click: () => setTargetBoatId(b.boat_id) }}
@@ -318,5 +325,4 @@ function AutonomousControl() {
     </div>
   );
 }
-
-export default AutonomousControl;
+export default ControlDashboard;

@@ -26,9 +26,9 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: hidden;
+  justify-content: center; /* ✅ This vertically centers the contents */
+  align-items: center; /* ✅ This horizontally centers them */
+  overflow-y: auto;
 }
 
 .control-group {

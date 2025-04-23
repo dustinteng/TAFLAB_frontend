@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
-import AutonomousControl from "./components/Map/AutonomousControl";
-import ManualControl from "./components/Map/ManualControl";
+import ControlDashboard from "./components/Map/ControlDashboard";
 import DataTransfer from "./components/DataTransfer/DataTransfer";
 import HeatmapWindow from "./components/Map/HeatmapWindow";
 import "./styles/styles.css";
@@ -17,14 +16,14 @@ function App() {
   const renderTab = () => {
     switch (activeTab) {
       case "manual":
-        return <ManualControl />;
+        return <ControlDashboard />;
       case "data":
         return <DataTransfer />;
       case "heatmap":
         return <HeatmapWindow />;
       case "autonomous":
       default:
-        return <AutonomousControl />;
+        return <ControlDashboard />;
     }
   };
 
