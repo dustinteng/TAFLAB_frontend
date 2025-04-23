@@ -149,3 +149,58 @@
   color: #eee;
   border: 1px solid #666;
 }
+
+.mission-planner {
+  width: 100%;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.mission-planner h3 {
+  margin-top: 0;
+  font-size: 1.1em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+}
+
+.mission-planner div {
+  margin: 4px 0;
+  font-size: 0.9em;
+}
+
+.mission-planner button {
+  margin: 6px 4px 0 0;
+  padding: 4px 8px;
+  font-size: 0.85em;
+}
+
+.mission-planner ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.mission-planner li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  font-size: 0.85em;
+}
+
+.mission-planner li button {
+  background: transparent;
+  border: none;
+  color: #e74c3c;
+  cursor: pointer;
+  font-weight: bold;
+}
