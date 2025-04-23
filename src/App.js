@@ -2,9 +2,9 @@
 import React, { useState } from "react";
 import Header from "./components/Header/Header";
 import Sidebar from "./components/Sidebar/Sidebar";
-import ControlDashboard from "./components/Map/ControlDashboard";
+import ControlDashboard from "./components/Dashboard/ControlDashboard";
 import DataTransfer from "./components/DataTransfer/DataTransfer";
-import HeatmapWindow from "./components/Map/HeatmapWindow";
+import HeatmapWindow from "./components/Dashboard/HeatmapWindow";
 import "./styles/styles.css";
 
 function App() {

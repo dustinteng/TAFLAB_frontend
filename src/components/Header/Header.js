@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../hooks/useTheme";
 import { useSocket } from "../../contexts/SocketContext";
+import { useContext } from "react";
+import { BoatContext } from "../../contexts/BoatContext";
+
 import sunIcon from "./sun.png";
 import moonIcon from "./moon.png";
 import "./Header.css";
@@ -19,6 +22,7 @@ function Header({ toggleSidebar }) {
 
   const [servers, setServers] = useState([]);
   const [showBanner, setShowBanner] = useState(false);
+  const { setBoats } = useContext(BoatContext);
 
   useEffect(() => {
     fetch("/Initialization/servers.json")
@@ -35,6 +39,7 @@ function Header({ toggleSidebar }) {
   const handleConnection = async () => {
     if (isConnected) {
       disconnect();
+      setBoats([]); // ✅ Clear boats when disconnected
       setShowBanner(false);
     } else {
       try {

@@ -19,6 +19,8 @@ import { Joystick } from "react-joystick-component";
 import { useSocket } from "../../contexts/SocketContext";
 import { BoatContext } from "../../contexts/BoatContext";
 import "./ControlDashboard.css";
+import MissionPlanner from "./MissionPlanner";
+import ManualControl from "./ManualControl";
 
 // override default icon
 delete L.Icon.Default.prototype._getIconUrl;
@@ -353,60 +355,43 @@ function ControlDashboard() {
           </MapContainer>
         </div>
         <div className="right-panel">
-          <h3>Mission Planner</h3>
-          <div>
-            Next Target:{" "}
-            {waypointQueue[0]
-              ? `${waypointQueue[0].latitude}, ${waypointQueue[0].longitude}`
-              : "None"}
-          </div>
-          <div>Status: {mode}</div>
-          <div>Progress: {currentProgress.toFixed(1)}%</div>
-          <button onClick={toggleMission} style={{ marginBottom: "8px" }}>
-            {mode === "auto" ? "Pause Mission" : "Continue Mission"}
-          </button>
-          <ul>
-            {waypointQueue.map((wp, i) => (
-              <li key={i} style={{ marginBottom: "4px" }}>
-                {wp.latitude}, {wp.longitude}{" "}
-                <button
-                  onClick={() =>
-                    setWaypointQueue((q) => q.filter((_, j) => j !== i))
-                  }
+          <h3>Boats</h3>
+          <div className="boat-dropdown-select">
+            <select
+              value={targetBoatId || ""}
+              onChange={(e) => setTargetBoatId(e.target.value)}
+              size={5} // enables scrollable dropdown
+            >
+              {boats.map((b) => (
+                <option
+                  key={b.boat_id}
+                  value={b.boat_id}
+                  style={{ color: getBoatColor(b.boat_id), fontWeight: "bold" }}
                 >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-          <h3>Controls</h3>
-          <button onClick={() => recenterMap()} style={{ margin: "10px 0" }}>
-            📍 Recenter
-          </button>
-          <div className={`control-group ${mode !== "mnl" ? "hidden" : ""}`}>
-            <h4>Rudder</h4>
-            <Joystick
-              size={100}
-              baseColor="#ccc"
-              stickColor="#555"
-              move={onRudderMove}
-              stop={onRudderStop}
-              disabled={!isConnected}
-            />
-            <p>{rudder}°</p>
-            <h4>Propeller</h4>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={propeller}
-              onChange={onPropChange}
-              onMouseUp={onPropEnd}
-              onTouchEnd={onPropEnd}
-              className="vertical-slider"
-            />
-            <p>{propeller}%</p>
+                  {b.boat_id}
+                </option>
+              ))}
+            </select>
           </div>
+          <MissionPlanner
+            waypointQueue={waypointQueue}
+            currentProgress={currentProgress}
+            mode={mode}
+            toggleMission={toggleMission}
+            setWaypointQueue={setWaypointQueue}
+          />
+
+          <ManualControl
+            mode={mode}
+            isConnected={isConnected}
+            rudder={rudder}
+            propeller={propeller}
+            onRudderMove={onRudderMove}
+            onRudderStop={onRudderStop}
+            onPropChange={onPropChange}
+            onPropEnd={onPropEnd}
+            recenterMap={recenterMap}
+          />
         </div>
       </div>
     </div>
